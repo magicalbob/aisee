@@ -5,16 +5,15 @@ include Magick
 
 
 class ImageObject
-  def initialize(isWhite)
+  def initialize(isWhite,fieldWidth,fieldHeight)
+    @fieldWidth = fieldWidth
+    @fieldHeight = fieldHeight
+    @pixels = Array.new(getIndexXY(fieldWidth,fieldHeight),false)
     @isWhite = isWhite
-    @points = Array.new
   end
 
   def addPixel(x,y)
-    aPoint=Array.new()
-    aPoint.push(x)
-    aPoint.push(y)
-    @points.push(aPoint)
+    @pixels[getIndexXY(x,y)] = true
   end
 
   def isWhite
@@ -23,7 +22,25 @@ class ImageObject
 
   def listob
       puts("isWhite = #{@isWhite}")
-      puts("points.length = #{@points.length}")
+      puts("points.length = #{@pixels.count(true)}")
+  end
+
+  def isSet(x,y)
+    return(@pixels[getIndexXY(x,y)])
+  end
+
+  def getXY(pixie_index)
+    retX = pixie_index % @fieldWidth
+    retY = ((pixie_index - retX) / @fieldWidth) # + 1
+
+    return retX, retY
+  end
+
+  def getIndexXY(x, y)
+    retIdx = y * @fieldWidth
+    retIdx += x
+
+    return retIdx   
   end
 end
 
@@ -69,7 +86,7 @@ class InputSource
           useWhite=false
         end
 #    create new object with first pixel set
-        @currentObj = ImageObject.new(useWhite)
+        @currentObj = ImageObject.new(useWhite,@img.columns,@img.rows)
 #    create new point list
         plist = Array.new
 #    add x,y to new point list
