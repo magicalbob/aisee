@@ -42,6 +42,33 @@ class ImageObject
 
     return retIdx   
   end
+
+  def printAsStrings
+    retStrings = Array.new
+    currY = 0
+    currStr = ""
+
+    @pixels.each_index do |pxl|
+      x,y = getXY(pxl)
+     if (x % 4 == 0) && (y % 4 == 0)
+      if y>currY
+        retStrings.push(currStr)
+        currStr = ""
+        currY = y
+      end
+
+      if isSet(x,y) || isSet(x+1,y) || isSet(x+2,y) || isSet(x+3,y)
+        currStr = currStr + "X"
+      else
+        currStr = currStr + " "
+      end
+     end
+    end
+
+    retStrings.push(currStr)
+
+    return retStrings
+  end
 end
 
 class InputSource
@@ -130,6 +157,7 @@ class InputSource
           plist = nplist
         end while plist.length > 0
         @objs.push(@currentObj)
+        puts(@currentObj.printAsStrings)
       end
     end
   end
