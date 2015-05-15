@@ -5,23 +5,23 @@ include Magick
 
 
 class ImageObject
-  def initialize(isWhite,fieldWidth,fieldHeight)
+  def initialize(whatColour,fieldWidth,fieldHeight)
     @fieldWidth = fieldWidth
     @fieldHeight = fieldHeight
     @pixels = Array.new(getIndexXY(fieldWidth,fieldHeight),false)
-    @isWhite = isWhite
+    @whatColour = whatColour
   end
 
   def addPixel(x,y)
     @pixels[getIndexXY(x,y)] = true
   end
 
-  def isWhite
-    return @isWhite
+  def whatColour
+    return @whatColour
   end
 
   def listob
-      puts("isWhite = #{@isWhite}")
+      puts("whatColour = (#{@whatColour.red},#{@whatColour.green},#{@whatColour.blue})")
       puts("points.length = #{@pixels.count(true)}")
   end
 
@@ -84,7 +84,7 @@ class InputSource
 # First find the lowest maximum of red, green & blue
 # Then set pixels to be black if less than half the found value, white if higher
 
-    @img3 =  img2.quantize(2, Magick::GRAYColorspace)
+    @img3 =  img2.quantize(256, Magick::GRAYColorspace)
     @img = @img3.despeckle
 
     maxR=0
@@ -136,17 +136,12 @@ class InputSource
            @iPixels[pixie].red != @iPixels[getIndexXY(x-1,y+1)].red and \
            @iPixels[pixie].red != @iPixels[getIndexXY(x,y+1)].red and \
            @iPixels[pixie].red != @iPixels[getIndexXY(x+1,y+1)].red
-          puts("REPLACED")
           @iPixels[pixie].red = @iPixels[getIndexXY(x-1,y)].red
           @iPixels[pixie].green = @iPixels[getIndexXY(x-1,y)].green
           @iPixels[pixie].blue = @iPixels[getIndexXY(x-1,y)].blue
         end
       end
     end
-
-    puts("maxR = #{maxR}")
-    puts("maxG = #{maxG}")
-    puts("maxB = #{maxB}")
 
     @objs = Array.new
   end
@@ -155,7 +150,6 @@ class InputSource
     puts("Number of objects: #{@objs.length}")
     @objs.each do |ob|
       ob.listob
-#      puts(ob.printAsStrings)
     end
     printOut
   end
@@ -222,13 +216,13 @@ class InputSource
 #    get x,y from index
         x,y = getXY(pixie)
 #    check if pixel is white or not
-        if (@iPixels[pixie].red == 65535)
-          useWhite=true
-        else
-          useWhite=false
-        end
+#        if (@iPixels[pixie].red == 65535)
+#          useWhite=true
+#        else
+#          useWhite=false
+#        end
 #    create new object with first pixel set
-        @currentObj = ImageObject.new(useWhite,@img.columns,@img.rows)
+        @currentObj = ImageObject.new(@iPixels[pixie],@img.columns,@img.rows)
 #    create new point list
         plist = Array.new
 #    add x,y to new point list
@@ -251,13 +245,13 @@ class InputSource
                    if (nPoint[0]>=0) && (nPoint[1]>=0) && (nPoint[0]<=@img.columns) && (nPoint[1]<=@img.rows)
                      padj = getIndexXY(nPoint[0],nPoint[1])
                      if @usedPixel[padj] == false
-                       if (@iPixels[padj].red == 65535)
-                         newWhite=true
-                       else
-                         newWhite=false
-                       end
-       
-                       if newWhite == useWhite
+#                       if (@iPixels[padj].red == 65535)
+#                         newWhite=true
+#                       else
+#                         newWhite=false
+#                       end
+      
+                       if @iPixels[padj].red == @currentObj.whatColour.red
                          if nplist.index(nPoint) == nil
                            @usedPixel[padj]=true
                            nplist.push(nPoint)
@@ -272,7 +266,6 @@ class InputSource
           plist = nplist
         end while plist.length > 0
         @objs.push(@currentObj)
-#        puts(@currentObj.printAsStrings)
       end
     end
   end
