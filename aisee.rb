@@ -72,70 +72,33 @@ class ImageObject
 end
 
 class InputSource
-  def initialize()
-    if ARGV.length > 0
-      img2 = Magick::Image.read(ARGV[0])[0]
+  def initialize(colourCount)
+    if ARGV.length > 1
+      img2 = Magick::Image.read(ARGV[1])[0]
     else
       system "/usr/local/bin/imagesnap image.png"
       img1 = Magick::Image.read('image.png')[0]
       img2 = img1.resize_to_fit(320,240)
     end
-# Convert to black & white
-# First find the lowest maximum of red, green & blue
-# Then set pixels to be black if less than half the found value, white if higher
 
-    @img3 =  img2.quantize(256, Magick::GRAYColorspace)
-    @img = @img3.despeckle
+# Convert colour palette. Don't dither - want clean edges.
 
-    maxR=0
-    maxG=0
-    maxB=0
+    img3 =  img2.quantize(colourCount, Magick::GRAYColorspace,NoDitherMethod)
+    @img = img3 #.despeckle
+
     @iPixels = @img.get_pixels(0,0,@img.columns,@img.rows)
-
-    @iPixels.each do |pixie|
-      if pixie.red > maxR
-        maxR=pixie.red
-      end
-      if pixie.green > maxG
-        maxG=pixie.green
-      end
-      if pixie.blue > maxB
-        maxB=pixie.blue
-      end
-    end
-
-    midRGB=maxR
-    if maxG<midRGB
-      midRGB=maxG
-    end
-    if maxB<midRGB
-      midRGB=maxB
-    end
-    midRGB=midRGB/2
-
-    @iPixels.each do |pixie|
-      if (pixie.red < midRGB) and (pixie.green < midRGB) and (pixie.blue < midRGB)
-        pixie.red = 0
-        pixie.green = 0
-        pixie.blue = 0
-      else
-        pixie.red = 65535
-        pixie.green = 65535
-        pixie.blue = 65535
-      end
-    end
 
     @iPixels.each_index do |pixie|
       x,y = getXY(pixie)
       if y>0 and y<@img.rows-1 and x>0 and x<@img.columns-1
-        if @iPixels[pixie].red != @iPixels[getIndexXY(x-1,y-1)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x,y-1)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x+1,y-1)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x-1,y)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x+1,y)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x-1,y+1)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x,y+1)].red and \
-           @iPixels[pixie].red != @iPixels[getIndexXY(x+1,y+1)].red
+        if !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x-1,y-1)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x,y-1)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x+1,y-1)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x-1,y)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x+1,y)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x-1,y+1)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x,y+1)]) and \
+           !sameColour(@iPixels[pixie],@iPixels[getIndexXY(x+1,y+1)])
           @iPixels[pixie].red = @iPixels[getIndexXY(x-1,y)].red
           @iPixels[pixie].green = @iPixels[getIndexXY(x-1,y)].green
           @iPixels[pixie].blue = @iPixels[getIndexXY(x-1,y)].blue
@@ -144,6 +107,16 @@ class InputSource
     end
 
     @objs = Array.new
+  end
+
+  def sameColour(p1,p2)
+    if (p1.red == p2.red) and \
+       (p1.green == p2.green) and \
+       (p1.blue == p1.blue)
+      return true
+    else
+      return false
+    end
   end
 
   def listobjects()
@@ -288,7 +261,12 @@ end
 
 class HighestThoughts
   def initialize()
-    inputSource = InputSource.new()
+    if ARGV[0] == nil
+      colPal=2
+    else
+      colPal=Integer(ARGV[0]) rescue 2
+    end
+    inputSource = InputSource.new(colPal)
     inputSource.printsize
     inputSource.findobjects
     inputSource.listobjects
