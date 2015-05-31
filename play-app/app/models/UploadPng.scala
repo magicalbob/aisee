@@ -12,7 +12,8 @@ object UploadPng {
       val fileName = fileToUpload.filename
       fileToUpload.contentType match {
         case Some(contentType) if contentType == "image/png" =>
-          fileToUpload.ref.moveTo(new File(Play.application.path.getPath + "/app/uploads/" + fileName))
+          fileToUpload.ref.moveTo(new File(Play.application.path.getPath +
+            Play.application.configuration.getString("upload.directory") + fileName))
           "SUCCESS"
         case _ => "FAIL"
       }
