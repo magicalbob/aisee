@@ -1,0 +1,9 @@
+@()
+@import views.html.helper._
+
+@main("Upload"){
+  @form(action = routes.Upload.upload, 'enctype -> "multipart/form-data"){
+    <input type="file" name="fileToUpload">
+    <p><input type="submit" value="Upload"></p>
+  }
+}
