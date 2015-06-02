@@ -5,6 +5,7 @@ import play.api.Logger
 object Brain {
 
   val NeuronFiringInterval = 500
+  val neuronsInBuffer = OpticNerve.neurons
 
   val activity = new Thread(new Runnable {
     def run(): Unit = {
@@ -13,7 +14,13 @@ object Brain {
   })
 
   def fireNeuronsInBuffer(): Unit = {
-    Logger.info("Firing neurons in buffer")
+    Logger.info("fireNeuronsInBuffer called")
+    neuronsInBuffer.foreach { neuron => fire(neuron) }
+  }
+
+  def fire(neuron: Neuron): Unit = {
+    neuron.fire()
+    neuronsInBuffer -= neuron
   }
 
 }
