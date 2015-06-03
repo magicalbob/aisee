@@ -4,8 +4,9 @@ object OpticNerve {
 
   val id = "ON"
   val neurons = collection.mutable.LinkedHashMap.empty[String, Neuron]
+  val image = new TestImage
 
-  for(x <- 0 until Image.width; y <- 0 until Image.height){
+  for(x <- 0 until image.width; y <- 0 until image.height){
 
     val neuronReference = Array[String](id, x.toString, y.toString).mkString("_")
     val postSynapticConnectionsBuffer = collection.mutable.ListBuffer.empty[PostSynapticConnection]
@@ -19,13 +20,13 @@ object OpticNerve {
       Array[String](LateralGeniculateNucleus.id, x.toString, y.toString, "BM").mkString("_"))
 
     // Inhibits LGN neuron on pixel to the middle-left
-    if (!Image.pixelOutOfBounds(x - 1, y)) {
+    if (!image.pixelOutOfBounds(x - 1, y)) {
       postSynapticConnectionsBuffer += PostSynapticConnection("I", 1F,
         Array[String](LateralGeniculateNucleus.id, (x-1).toString, y.toString, "MR").mkString("_"))
     }
 
     // Inhibits LGN neuron on pixel to the top-middle
-    if (!Image.pixelOutOfBounds(x, y - 1)) {
+    if (!image.pixelOutOfBounds(x, y - 1)) {
       postSynapticConnectionsBuffer += PostSynapticConnection("I", 1F,
         Array[String](LateralGeniculateNucleus.id, x.toString, (y-1).toString, "BM").mkString("_"))
     }
@@ -36,4 +37,12 @@ object OpticNerve {
     neurons += (neuronReference -> neuron)
   }
 
+}
+
+class TestImage {
+  val width = 16
+  val height = 16
+  def pixelOutOfBounds(x: Int, y: Int): Boolean = {
+    (x < 0) || (y < 0) || (x > width - 1) || (y > height - 1)
+  }
 }
