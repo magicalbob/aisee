@@ -1,26 +1,29 @@
 package ai
 
-import play.api.Logger
-
 object Brain {
 
   val NeuronFiringInterval = 500
-  val neuronsInBuffer = OpticNerve.neurons
+  val neurons = OpticNerve.neurons ++= LateralGeniculateNucleus.neurons
+  val neuronsInBuffer = collection.mutable.ArrayBuffer.empty[String]
+  val neuronsToBeFired = collection.mutable.ArrayBuffer.empty[String]
+
+  OpticNerve.neurons.foreach { case (neuronReference, neuron) =>
+    neuronsInBuffer += neuronReference
+  }
 
   val activity = new Thread(new Runnable {
     def run(): Unit = {
-      while(true) { fireNeuronsInBuffer(); Thread sleep NeuronFiringInterval }
+      while(true) { fireNeurons(); Thread sleep NeuronFiringInterval }
     }
   })
 
-  def fireNeuronsInBuffer(): Unit = {
-    Logger.info("fireNeuronsInBuffer called")
-    neuronsInBuffer.foreach { neuron => fire(neuron) }
-  }
-
-  def fire(neuron: Neuron): Unit = {
-    neuron.fire()
-    neuronsInBuffer -= neuron
+  def fireNeurons(): Unit = {
+    neuronsToBeFired.clear()
+    neuronsToBeFired ++= neuronsInBuffer
+    neuronsInBuffer.clear()
+    neuronsToBeFired.foreach { neuronReference =>
+      neurons(neuronReference).fire(neuronReference)
+    }
   }
 
 }
