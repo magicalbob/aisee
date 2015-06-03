@@ -10,5 +10,6 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  ws
+  ws,
+  "com.sksamuel.scrimage" %% "scrimage-core" % "1.4.2"
 )

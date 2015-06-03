@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.mvc._
-import utils.UploadPng
+import utils.UploadFile
 import ai.{Neuron, Brain}
 
 object Upload extends Controller {
@@ -11,7 +11,7 @@ object Upload extends Controller {
   }
 
   def upload = Action(parse.multipartFormData) { request =>
-    UploadPng.uploadPng(request.body.file("fileToUpload")) match {
+    UploadFile.upload(request.body.file("fileToUpload")) match {
       case "SUCCESS" =>
         Brain.activity.start()
         Ok("File uploaded")
