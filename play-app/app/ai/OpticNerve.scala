@@ -1,34 +1,33 @@
 package ai
 
-object OpticNerve {
+class OpticNerve {
 
-  val id = "ON"
   val neurons = collection.mutable.LinkedHashMap.empty[String, Neuron]
   val image = new TestImage
 
   for(x <- 0 until image.width; y <- 0 until image.height){
 
-    val neuronReference = Array[String](id, x.toString, y.toString).mkString("_")
+    val neuronReference = Array[String]("ON", x.toString, y.toString).mkString("_")
     val postSynapticConnectionsBuffer = collection.mutable.ListBuffer.empty[PostSynapticConnection]
 
     // Excites LGN neuron on same pixel for middle-right border
     postSynapticConnectionsBuffer += PostSynapticConnection("E", 1F,
-      Array[String](LateralGeniculateNucleus.id, x.toString, y.toString, "MR").mkString("_"))
+      Array[String]("LGN", x.toString, y.toString, "MR").mkString("_"))
 
     // Excites LGN neuron on same pixel for bottom-middle border
     postSynapticConnectionsBuffer += PostSynapticConnection("E", 1F,
-      Array[String](LateralGeniculateNucleus.id, x.toString, y.toString, "BM").mkString("_"))
+      Array[String]("LGN", x.toString, y.toString, "BM").mkString("_"))
 
     // Inhibits LGN neuron on pixel to the middle-left
     if (!image.pixelOutOfBounds(x - 1, y)) {
       postSynapticConnectionsBuffer += PostSynapticConnection("I", 1F,
-        Array[String](LateralGeniculateNucleus.id, (x-1).toString, y.toString, "MR").mkString("_"))
+        Array[String]("LGN", (x-1).toString, y.toString, "MR").mkString("_"))
     }
 
     // Inhibits LGN neuron on pixel to the top-middle
     if (!image.pixelOutOfBounds(x, y - 1)) {
       postSynapticConnectionsBuffer += PostSynapticConnection("I", 1F,
-        Array[String](LateralGeniculateNucleus.id, x.toString, (y-1).toString, "BM").mkString("_"))
+        Array[String]("LGN", x.toString, (y-1).toString, "BM").mkString("_"))
     }
 
     val postSynapticConnections = postSynapticConnectionsBuffer.toList

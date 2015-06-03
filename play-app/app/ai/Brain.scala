@@ -1,29 +1,42 @@
 package ai
 
-object Brain {
+class Brain {
 
   val NeuronFiringInterval = 500
-  val neurons = OpticNerve.neurons ++= LateralGeniculateNucleus.neurons
+
+  val opticNerve = new OpticNerve
+  val lateralGeniculateNucleus = new LateralGeniculateNucleus
+  val neurons = opticNerve.neurons ++= lateralGeniculateNucleus.neurons
+
   val neuronsInBuffer = collection.mutable.ArrayBuffer.empty[String]
   val neuronsToBeFired = collection.mutable.ArrayBuffer.empty[String]
 
-  OpticNerve.neurons.foreach { case (neuronReference, neuron) =>
-    neuronsInBuffer += neuronReference
+  def start(): Unit = {
+    opticNerve.neurons.foreach { case (neuronReference, neuron) =>
+      neuronsInBuffer += neuronReference
+    }
+    while (neuronsInBuffer.nonEmpty) { fireNeurons() }
   }
 
-  val activity = new Thread(new Runnable {
-    def run(): Unit = {
-      while(true) { fireNeurons(); Thread sleep NeuronFiringInterval }
-    }
-  })
-
   def fireNeurons(): Unit = {
+    switcheroo()
+    neuronsToBeFired.foreach { preSynapticNeuron =>
+      neurons(preSynapticNeuron).postSynapticConnections.foreach { connection =>
+        neurons(connection.postSynapticNeuron).firingRate = connection.typeOfEffect match {
+          case "E" => scala.math.abs(neurons(connection.postSynapticNeuron).firingRate +
+            neurons(preSynapticNeuron).calculatePostSynapticEffect(connection))
+          case "I" => scala.math.abs(neurons(connection.postSynapticNeuron).firingRate -
+            neurons(preSynapticNeuron).calculatePostSynapticEffect(connection))
+        }
+        neuronsInBuffer += connection.postSynapticNeuron
+      }
+    }
+  }
+
+  def switcheroo(): Unit = {
     neuronsToBeFired.clear()
     neuronsToBeFired ++= neuronsInBuffer
     neuronsInBuffer.clear()
-    neuronsToBeFired.foreach { neuronReference =>
-      neurons(neuronReference).fire(neuronReference)
-    }
   }
 
 }
